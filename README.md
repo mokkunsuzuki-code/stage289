@@ -2,9 +2,7 @@
 
 ## Overview
 
-Stage289 introduces a minimal Verification API for QSP / VEP.
-
-This stage turns verification into an external API interface.
+Stage289 introduces a public Verification API for QSP / VEP.
 
 Clients can submit:
 - a public URL
@@ -14,48 +12,36 @@ The API returns:
 - verification decision
 - trust score
 - evidence
-- GPG signature of the result
 
-This is the first API-shaped stage that can later evolve into:
-- SaaS
-- public verification service
-- OpenSSF-compatible verification endpoint
-- hardware-backed signing with YubiKey
+This stage converts verification into a machine-readable API.
 
 ---
 
-## API
+## Public API
 
-### Health check
+Base URL:
 
-GET /
+https://stage289.onrender.com
 
-Response example:
-
-```json
-{
-  "stage": "289",
-  "name": "Verification API",
-  "status": "ok"
-}
-Verification
+Endpoint:
 
 POST /verify
 
-Request example:
+Example:
 
-{
-  "url": "https://example.com",
-  "manifest": {
-    "execution": true,
-    "identity": true,
-    "timestamp": true,
-    "workflow": "github-actions"
-  }
-}
-
-Response fields:
-
+```bash
+curl -X POST "https://stage289.onrender.com/verify" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "manifest": {
+      "execution": true,
+      "identity": true,
+      "timestamp": true,
+      "workflow": "github-actions"
+    }
+  }'
+Response
 decision
 reason
 trust_score
@@ -63,61 +49,42 @@ breakdown
 evidence
 signature
 signature_error
-Local run
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+Public deployment note
 
-Open:
+The public Render deployment exposes the verification API externally.
 
-http://127.0.0.1:8000/
-http://127.0.0.1:8000/docs
-Design
+At this stage:
 
-Current signing:
+Verification (decision, trust score, evidence) is fully available
+The API is publicly accessible
 
-local GPG software key
+GPG signing is currently available in the local environment only.
 
-Future upgrade:
+The public deployment does not include a server-side secret key, therefore:
 
-YubiKey-backed signing
-same API surface, stronger trust
+signature may be null
+signature_error may indicate that no secret key is installed
 
-This means Stage289 is already functional now,
-while the signing backend can later be upgraded without changing the API contract.
+This is intentional for security reasons.
 
-Trust model (minimal initial version)
+Trust Model
 Integrity
 Execution
 Identity
 Time
 
-Current decision thresholds:
+Decision thresholds:
 
 accept: trust_score >= 0.85
 pending: 0.45 <= trust_score < 0.85
 reject: trust_score < 0.45
-Why this stage matters
+Roadmap
 
-Previous stages established:
+Next stage:
 
-evidence
-verification
-public exposure
-trust scoring
-
-Stage289 adds:
-
-API form
-machine-readable verification interface
-external integration path
-
-This is the step from:
-
-verification page
-to:
-verification service
+Hardware-backed signing (YubiKey)
+Stronger identity trust
+Production-grade signing architecture
 License
 
 MIT License
